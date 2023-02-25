@@ -6,6 +6,7 @@ export default defineConfig({
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI,
   },
+  timeout: 120 * 1000,
   use: {
     headless: true,
     viewport: { width: 1280, height: 720 },

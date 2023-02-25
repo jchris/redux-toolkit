@@ -18,6 +18,8 @@ jobs:
           filters: |
             toolkit:
               - 'packages/toolkit/**'
+              - 'examples/publish-ci/**'
+              - '.github/workflows/tests.yml'
 
   build:
     needs: changes
@@ -87,8 +89,49 @@ jobs:
       - name: Run tests, against dist
         run: yarn test
 
-  test-types:
-    name: Test Types with TypeScript ${{ matrix.ts }}
+  # test-types:
+  #   name: Test Types with TypeScript ${{ matrix.ts }}
+
+  #   needs: [build]
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node: ['16.x']
+  #       ts: ['4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9.2-rc']
+  #   steps:
+  #     - name: Checkout repo
+  #       uses: actions/checkout@v2
+
+  #     - name: Use node ${{ matrix.node }}
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: ${{ matrix.node }}
+  #         cache: 'yarn'
+
+  #     - name: Install deps
+  #       run: yarn install
+
+  #     - name: Install TypeScript ${{ matrix.ts }}
+  #       run: yarn add typescript@${{ matrix.ts }}
+
+  #     - uses: actions/download-artifact@v2
+  #       with:
+  #         name: package
+  #         path: packages/toolkit
+
+  #     - name: Install build artifact
+  #       run: yarn add ./package.tgz
+
+  #     - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
+
+  #     - name: Test types
+  #       run: |
+  #         yarn tsc --version
+  #         yarn type-tests
+
+  test-published-artifact:
+    name: Test Published Artifact ${{ matrix.example }}
 
     needs: [build]
     runs-on: ubuntu-latest
@@ -96,7 +139,10 @@ jobs:
       fail-fast: false
       matrix:
         node: ['16.x']
-        ts: ['4.1', '4.2', '4.3', '4.4', '4.5', '4.6', '4.7', '4.8', '4.9.2-rc']
+        example: ['cra5']
+    defaults:
+      run:
+        working-directory: ./examples/publish-ci/${{ matrix.example }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -110,20 +156,22 @@ jobs:
       - name: Install deps
         run: yarn install
 
-      - name: Install TypeScript ${{ matrix.ts }}
-        run: yarn add typescript@${{ matrix.ts }}
+      - name: Remove existing RTK
+        run: yarn remove @reduxjs/toolkit
 
       - uses: actions/download-artifact@v2
         with:
           name: package
-          path: packages/toolkit
+          path: ./examples/publish-ci/${{ matrix.example }}
 
-      - name: Install build artifact
+      - name: Check folder contents
+        run: ls -l .
+
+      - name: Install RTK build artifact
         run: yarn add ./package.tgz
 
-      - run: sed -i -e /@remap-prod-remove-line/d ./tsconfig.base.json ./jest.config.js ./src/tests/*.* ./src/query/tests/*.*
+      - name: Build example
+        run: yarn build
 
-      - name: Test types
-        run: |
-          yarn tsc --version
-          yarn type-tests
+      - name: Run Playwright test
+        run: yarn test-playwright

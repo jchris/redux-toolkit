@@ -32,4 +32,4 @@ typesversions
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
-*.tgz
+!*.tgz

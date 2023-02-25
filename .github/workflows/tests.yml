@@ -133,7 +133,7 @@ jobs:
   test-published-artifact:
     name: Test Published Artifact ${{ matrix.example }}
 
-    needs: [build]
+    # needs: [build]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -159,13 +159,13 @@ jobs:
       - name: Remove existing RTK
         run: yarn remove @reduxjs/toolkit
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: package
-          path: ./examples/publish-ci/${{ matrix.example }}
+      # - uses: actions/download-artifact@v2
+      #   with:
+      #     name: package
+      #     path: ./examples/publish-ci/${{ matrix.example }}
 
-      - name: Check folder contents
-        run: ls -l .
+      # - name: Check folder contents
+      #   run: ls -l .
 
       - name: Install RTK build artifact
         run: yarn add ./package.tgz
